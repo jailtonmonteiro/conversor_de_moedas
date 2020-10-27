@@ -27,27 +27,91 @@ Future<Map> getData() async {
   return json.decode(response.body);
 }
 
+class Home extends StatefulWidget {
+  @override
+  _HomeState createState() => _HomeState();
+}
+
 //Construção dos campos de Texto
-Widget buildTextField(String label, String prefix) {
+Widget buildTextField(String label, String prefix,
+    TextEditingController controller, Function function) {
   return TextField(
-    keyboardType: TextInputType.number,
+    controller: controller,
+    keyboardType: TextInputType.numberWithOptions(decimal: true),
     decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(color: Colors.amber),
         border: OutlineInputBorder(),
         prefixText: prefix),
     style: TextStyle(color: Colors.amber, fontSize: 25),
+    onChanged: function,
   );
 }
 
-class Home extends StatefulWidget {
-  @override
-  _HomeState createState() => _HomeState();
-}
-
 class _HomeState extends State<Home> {
+  final realController = TextEditingController();
+  final dolarController = TextEditingController();
+  final euroController = TextEditingController();
+  final bitController = TextEditingController();
+
   double dolar;
   double euro;
+  double bitcoin;
+
+  void _clearAll() {
+    realController.text = "";
+    euroController.text = "";
+    dolarController.text = "";
+    bitController.text = "";
+  }
+
+  void _realChanged(String text) {
+    if (text.isEmpty) {
+      _clearAll();
+      return;
+    }
+
+    double real = double.parse(text);
+    dolarController.text = (real / dolar).toStringAsFixed(2);
+    euroController.text = (real / euro).toStringAsFixed(2);
+    bitController.text = (real / bitcoin).toStringAsFixed(2);
+  }
+
+  void _dolarChanged(String text) {
+    if (text.isEmpty) {
+      _clearAll();
+      return;
+    }
+
+    double dolar = double.parse(text);
+    realController.text = (dolar * this.dolar).toStringAsFixed(2);
+    euroController.text = (dolar * this.dolar / euro).toStringAsFixed(2);
+    bitController.text = (dolar * this.dolar / bitcoin).toStringAsFixed(2);
+  }
+
+  void _euroChanged(String text) {
+    if (text.isEmpty) {
+      _clearAll();
+      return;
+    }
+
+    double euro = double.parse(text);
+    realController.text = (euro * this.euro).toStringAsFixed(2);
+    dolarController.text = (euro * this.euro / dolar).toStringAsFixed(2);
+    bitController.text = (euro * this.euro / bitcoin).toStringAsFixed(2);
+  }
+
+  void _bitChanged(String text) {
+    if (text.isEmpty) {
+      _clearAll();
+      return;
+    }
+
+    double bitcoin = double.parse(text);
+    realController.text = (bitcoin * this.bitcoin).toStringAsFixed(2);
+    dolarController.text = (bitcoin * this.bitcoin / dolar).toStringAsFixed(2);
+    euroController.text = (bitcoin * this.bitcoin / euro).toStringAsFixed(2);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +142,8 @@ class _HomeState extends State<Home> {
                 } else {
                   dolar = snapshot.data["results"]["currencies"]["USD"]["buy"];
                   euro = snapshot.data["results"]["currencies"]["EUR"]["buy"];
+                  bitcoin =
+                      snapshot.data["results"]["currencies"]["BTC"]["buy"];
 
                   return SingleChildScrollView(
                     padding: EdgeInsets.all(10.0),
@@ -86,11 +152,17 @@ class _HomeState extends State<Home> {
                       children: [
                         Icon(Icons.monetization_on,
                             size: 150.0, color: Colors.amber),
-                        buildTextField("Real", "R\$"),
+                        buildTextField(
+                            "Reais", "R\$ ", realController, _realChanged),
                         Divider(),
-                        buildTextField("Dólar", "\$"),
+                        buildTextField(
+                            "Dólares", "\$ ", dolarController, _dolarChanged),
                         Divider(),
-                        buildTextField("Euro", "€"),
+                        buildTextField(
+                            "Euros", "€ ", euroController, _euroChanged),
+                        Divider(),
+                        buildTextField(
+                            "Bitcoin", "Ƀ ", bitController, _bitChanged),
                       ],
                     ),
                   );
